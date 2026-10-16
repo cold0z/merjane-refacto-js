@@ -7,6 +7,8 @@ import {type INotificationService} from '../notifications.port.js';
 import {createDatabaseMock, cleanUp} from '../../utils/test-utils/database-tools.ts.js';
 import {ProductService} from './product.service.js';
 import {products, type Product} from '@/db/schema.js';
+// Needed since the service now talks to the repo, not the db - cl_Jihad
+import {ProductRepository} from '@/repositories/product.repository.js';
 import {type Database} from '@/db/type.js';
 
 describe('ProductService Tests', () => {
@@ -21,7 +23,8 @@ describe('ProductService Tests', () => {
 		notificationServiceMock = mockDeep<INotificationService>();
 		productService = new ProductService({
 			ns: notificationServiceMock,
-			db: databaseMock,
+			// Building the repo on top of the test db - cl_Jihad
+			productRepository: new ProductRepository({db: databaseMock}),
 		});
 	});
 

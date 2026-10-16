@@ -1,21 +1,22 @@
 import {type Cradle} from '@fastify/awilix';
-import {eq} from 'drizzle-orm';
 import {type INotificationService} from '../notifications.port.js';
-import {products, type Product} from '@/db/schema.js';
-import {type Database} from '@/db/type.js';
+import {type Product} from '@/db/schema.js';
+// Service goes through the repo now instead of Drizzle directly - cl_Jihad
+import {type ProductRepository} from '@/repositories/product.repository.js';
 
 export class ProductService {
 	private readonly ns: INotificationService;
-	private readonly db: Database;
+	// Injected by awilix, replaces the old db field - cl_Jihad
+	private readonly productRepository: ProductRepository;
 
-	public constructor({ns, db}: Pick<Cradle, 'ns' | 'db'>) {
+	public constructor({ns, productRepository}: Pick<Cradle, 'ns' | 'productRepository'>) {
 		this.ns = ns;
-		this.db = db;
+		this.productRepository = productRepository;
 	}
 
 	public async notifyDelay(leadTime: number, p: Product): Promise<void> {
 		p.leadTime = leadTime;
-		await this.db.update(products).set(p).where(eq(products.id, p.id));
+		await this.productRepository.save(p);
 		this.ns.sendDelayNotification(leadTime, p.name);
 	}
 
@@ -25,10 +26,10 @@ export class ProductService {
 		if (new Date(currentDate.getTime() + (p.leadTime * d)) > p.seasonEndDate!) {
 			this.ns.sendOutOfStockNotification(p.name);
 			p.available = 0;
-			await this.db.update(products).set(p).where(eq(products.id, p.id));
+			await this.productRepository.save(p);
 		} else if (p.seasonStartDate! > currentDate) {
 			this.ns.sendOutOfStockNotification(p.name);
-			await this.db.update(products).set(p).where(eq(products.id, p.id));
+			await this.productRepository.save(p);
 		} else {
 			await this.notifyDelay(p.leadTime, p);
 		}
@@ -38,11 +39,11 @@ export class ProductService {
 		const currentDate = new Date();
 		if (p.available > 0 && p.expiryDate! > currentDate) {
 			p.available -= 1;
-			await this.db.update(products).set(p).where(eq(products.id, p.id));
+			await this.productRepository.save(p);
 		} else {
 			this.ns.sendExpirationNotification(p.name, p.expiryDate!);
 			p.available = 0;
-			await this.db.update(products).set(p).where(eq(products.id, p.id));
+			await this.productRepository.save(p);
 		}
 	}
 }

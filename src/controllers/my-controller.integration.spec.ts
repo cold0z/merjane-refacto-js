@@ -52,10 +52,10 @@ describe('MyController Integration Tests', () => {
 		expect(resultOrder!.id).toBe(orderId);
 	});
 
-	// Added by cl_Jihad
+	// One day in ms, so the dates below stay readable - cl_Jihad
 	const day = 24 * 60 * 60 * 1000;
 
-	// Added by cl_Jihad
+	// Helper: creates a product + order, calls the endpoint, returns the product from the DB - cl_Jihad
 	async function processOrderWith(product: ProductInsert) {
 		const [saved] = database.insert(products).values(product).returning().all();
 		const order = database.insert(orders).values({}).returning().get();
@@ -66,14 +66,14 @@ describe('MyController Integration Tests', () => {
 		return database.query.products.findFirst({where: eq(products.id, saved!.id)});
 	}
 
-	// Added by cl_Jihad
+	// Quick check that no notification went out at all - cl_Jihad
 	function expectNoNotification() {
 		expect(notificationServiceMock.sendDelayNotification).not.toHaveBeenCalled();
 		expect(notificationServiceMock.sendOutOfStockNotification).not.toHaveBeenCalled();
 		expect(notificationServiceMock.sendExpirationNotification).not.toHaveBeenCalled();
 	}
 
-	// Added by cl_Jihad
+	// Tests for the NORMAL case - cl_Jihad
 	describe('NORMAL products', () => {
 		it('decrements the stock when available', async () => {
 			const result = await processOrderWith({
@@ -103,7 +103,7 @@ describe('MyController Integration Tests', () => {
 		});
 	});
 
-	// Added by cl_Jihad
+	// Tests for the SEASONAL case, the trickiest one - cl_Jihad
 	describe('SEASONAL products', () => {
 		it('decrements the stock when in season and available', async () => {
 			const result = await processOrderWith({
@@ -159,7 +159,7 @@ describe('MyController Integration Tests', () => {
 		});
 	});
 
-	// Added by cl_Jihad
+	// Tests for the EXPIRABLE case - cl_Jihad
 	describe('EXPIRABLE products', () => {
 		it('decrements the stock when not expired and available', async () => {
 			const result = await processOrderWith({

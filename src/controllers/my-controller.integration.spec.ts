@@ -73,6 +73,20 @@ describe('MyController Integration Tests', () => {
 		expect(notificationServiceMock.sendExpirationNotification).not.toHaveBeenCalled();
 	}
 
+	// An order that does not exist used to crash the server with a 500, now it is a proper 404 - cl_Jihad
+	it('returns 404 when the order does not exist', async () => {
+		await supertest(fastify.server).post('/orders/999/processOrder').expect(404);
+	});
+
+	// The endpoint answers with the id of the processed order - cl_Jihad
+	it('returns the processed order id', async () => {
+		const order = database.insert(orders).values({}).returning().get();
+
+		const response = await supertest(fastify.server).post(`/orders/${order.id}/processOrder`).expect(200);
+
+		expect(response.body).toEqual({orderId: order.id});
+	});
+
 	// Tests for the NORMAL case - cl_Jihad
 	describe('NORMAL products', () => {
 		it('decrements the stock when available', async () => {

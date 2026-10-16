@@ -8,6 +8,10 @@ import {ProductService} from '@/services/impl/product.service.js';
 // Need these two to plug the repositories in - cl_Jihad
 import {ProductRepository} from '@/repositories/product.repository.js';
 import {OrderRepository} from '@/repositories/order.repository.js';
+import {OrderService} from '@/services/impl/order.service.js';
+import {NormalProductHandler} from '@/services/impl/handlers/normal-product.handler.js';
+import {SeasonalProductHandler} from '@/services/impl/handlers/seasonal-product.handler.js';
+import {ExpirableProductHandler} from '@/services/impl/handlers/expirable-product.handler.js';
 
 declare module '@fastify/awilix' {
 
@@ -19,6 +23,11 @@ declare module '@fastify/awilix' {
 		// Declaring the new repos here so TS knows about them - cl_Jihad
 		productRepository: ProductRepository;
 		orderRepository: OrderRepository;
+		// The 3 handlers, one per product type - cl_Jihad
+		normalProductHandler: NormalProductHandler;
+		seasonalProductHandler: SeasonalProductHandler;
+		expirableProductHandler: ExpirableProductHandler;
+		orderService: OrderService;
 	}
 }
 
@@ -41,6 +50,16 @@ export async function configureDiContext(
 	diContainer.register({
 		productRepository: asClass(ProductRepository),
 		orderRepository: asClass(OrderRepository),
+	});
+	// Handlers registered here, the order service will pick one per product type - cl_Jihad
+	diContainer.register({
+		normalProductHandler: asClass(NormalProductHandler),
+		seasonalProductHandler: asClass(SeasonalProductHandler),
+		expirableProductHandler: asClass(ExpirableProductHandler),
+	});
+	// The entry point used by the controller - cl_Jihad
+	diContainer.register({
+		orderService: asClass(OrderService),
 	});
 }
 

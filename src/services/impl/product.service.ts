@@ -20,30 +20,9 @@ export class ProductService {
 		this.ns.sendDelayNotification(leadTime, p.name);
 	}
 
-	public async handleSeasonalProduct(p: Product): Promise<void> {
-		const currentDate = new Date();
-		const d = 1000 * 60 * 60 * 24;
-		if (new Date(currentDate.getTime() + (p.leadTime * d)) > p.seasonEndDate!) {
-			this.ns.sendOutOfStockNotification(p.name);
-			p.available = 0;
-			await this.productRepository.save(p);
-		} else if (p.seasonStartDate! > currentDate) {
-			this.ns.sendOutOfStockNotification(p.name);
-			await this.productRepository.save(p);
-		} else {
-			await this.notifyDelay(p.leadTime, p);
-		}
-	}
-
-	public async handleExpiredProduct(p: Product): Promise<void> {
-		const currentDate = new Date();
-		if (p.available > 0 && p.expiryDate! > currentDate) {
-			p.available -= 1;
-			await this.productRepository.save(p);
-		} else {
-			this.ns.sendExpirationNotification(p.name, p.expiryDate!);
-			p.available = 0;
-			await this.productRepository.save(p);
-		}
+	// Shared by the 3 handlers, selling one unit is always the same operation - cl_Jihad
+	public async decrementStock(p: Product): Promise<void> {
+		p.available -= 1;
+		await this.productRepository.save(p);
 	}
 }

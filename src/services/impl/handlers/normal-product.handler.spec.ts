@@ -6,7 +6,6 @@ import {NormalProductHandler} from './normal-product.handler.js';
 import {type ProductService} from '@/services/impl/product.service.js';
 import {type Product} from '@/db/schema.js';
 
-// Unit tests for the NORMAL rules, the service is mocked so only the decision is tested - cl_Jihad
 describe('NormalProductHandler', () => {
 	let productServiceMock: DeepMockProxy<ProductService>;
 	let handler: NormalProductHandler;

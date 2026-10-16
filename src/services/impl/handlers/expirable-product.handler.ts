@@ -5,7 +5,6 @@ import {type ProductService} from '../product.service.js';
 import {type Product} from '@/db/schema.js';
 import {type ProductRepository} from '@/repositories/product.repository.js';
 
-// Rules for EXPIRABLE products: sellable until the expiry date, then they are out for good - cl_Jihad
 export class ExpirableProductHandler implements ProductHandler {
 	private readonly ps: ProductService;
 	private readonly ns: INotificationService;

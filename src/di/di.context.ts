@@ -5,7 +5,6 @@ import {type INotificationService} from '@/services/notifications.port.js';
 import {NotificationService} from '@/services/impl/notification.service.js';
 import {type Database} from '@/db/type.js';
 import {ProductService} from '@/services/impl/product.service.js';
-// Need these two to plug the repositories in - cl_Jihad
 import {ProductRepository} from '@/repositories/product.repository.js';
 import {OrderRepository} from '@/repositories/order.repository.js';
 import {OrderService} from '@/services/impl/order.service.js';
@@ -20,10 +19,8 @@ declare module '@fastify/awilix' {
 		db: Database;
 		ns: INotificationService;
 		ps: ProductService;
-		// Declaring the new repos here so TS knows about them - cl_Jihad
 		productRepository: ProductRepository;
 		orderRepository: OrderRepository;
-		// The 3 handlers, one per product type - cl_Jihad
 		normalProductHandler: NormalProductHandler;
 		seasonalProductHandler: SeasonalProductHandler;
 		expirableProductHandler: ExpirableProductHandler;
@@ -46,18 +43,15 @@ export async function configureDiContext(
 	diContainer.register({
 		ps: asClass(ProductService),
 	});
-	// Registering the repos, same way as ps and ns above - cl_Jihad
 	diContainer.register({
 		productRepository: asClass(ProductRepository),
 		orderRepository: asClass(OrderRepository),
 	});
-	// Handlers registered here, the order service will pick one per product type - cl_Jihad
 	diContainer.register({
 		normalProductHandler: asClass(NormalProductHandler),
 		seasonalProductHandler: asClass(SeasonalProductHandler),
 		expirableProductHandler: asClass(ExpirableProductHandler),
 	});
-	// The entry point used by the controller - cl_Jihad
 	diContainer.register({
 		orderService: asClass(OrderService),
 	});

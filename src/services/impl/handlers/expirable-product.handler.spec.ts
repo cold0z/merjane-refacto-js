@@ -8,7 +8,6 @@ import {type INotificationService} from '@/services/notifications.port.js';
 import {type ProductRepository} from '@/repositories/product.repository.js';
 import {type Product} from '@/db/schema.js';
 
-// Unit tests for the EXPIRABLE rules: valid and in stock = sold, anything else = expiration notice - cl_Jihad
 describe('ExpirableProductHandler', () => {
 	const day = 24 * 60 * 60 * 1000;
 	const now = new Date('2026-06-15T12:00:00Z');
@@ -77,6 +76,15 @@ describe('ExpirableProductHandler', () => {
 		await handler.handle(product);
 
 		expect(notificationServiceMock.sendExpirationNotification).toHaveBeenCalledWith('Cheese', expiryDate);
+		expect(productServiceMock.decrementStock).not.toHaveBeenCalled();
+	});
+
+	it('treats a product expiring right now as expired', async () => {
+		const product = buildProduct({name: 'Yogurt', expiryDate: new Date(now.getTime())});
+
+		await handler.handle(product);
+
+		expect(notificationServiceMock.sendExpirationNotification).toHaveBeenCalledWith('Yogurt', now);
 		expect(productServiceMock.decrementStock).not.toHaveBeenCalled();
 	});
 });

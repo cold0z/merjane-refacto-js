@@ -1,12 +1,10 @@
 import {type Cradle} from '@fastify/awilix';
 import {type INotificationService} from '../notifications.port.js';
 import {type Product} from '@/db/schema.js';
-// Service goes through the repo now instead of Drizzle directly - cl_Jihad
 import {type ProductRepository} from '@/repositories/product.repository.js';
 
 export class ProductService {
 	private readonly ns: INotificationService;
-	// Injected by awilix, replaces the old db field - cl_Jihad
 	private readonly productRepository: ProductRepository;
 
 	public constructor({ns, productRepository}: Pick<Cradle, 'ns' | 'productRepository'>) {

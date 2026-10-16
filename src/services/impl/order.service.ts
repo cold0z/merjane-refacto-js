@@ -14,7 +14,6 @@ export class OrderNotFoundError extends Error {
 	}
 }
 
-// Orchestrates an order: load its products, then let the right handler deal with each one - cl_Jihad
 export class OrderService {
 	private readonly orderRepository: OrderRepository;
 	private readonly handlersByType: Map<string, ProductHandler>;

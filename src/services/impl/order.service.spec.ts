@@ -9,7 +9,6 @@ import {type ExpirableProductHandler} from './handlers/expirable-product.handler
 import {type OrderRepository} from '@/repositories/order.repository.js';
 import {type Product} from '@/db/schema.js';
 
-// Checks that each product goes to the right handler, and nothing else - cl_Jihad
 describe('OrderService', () => {
 	let orderRepositoryMock: DeepMockProxy<OrderRepository>;
 	let normalHandlerMock: DeepMockProxy<NormalProductHandler>;

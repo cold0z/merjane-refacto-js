@@ -1,10 +1,8 @@
-// Same idea as the product repo but for reading orders - cl_Jihad
 import {type Cradle} from '@fastify/awilix';
 import {eq} from 'drizzle-orm';
 import {orders, type Product} from '@/db/schema.js';
 import {type Database} from '@/db/type.js';
 
-// Moved the big Drizzle query out of the controller into here - cl_Jihad
 export class OrderRepository {
 	private readonly db: Database;
 

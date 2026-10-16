@@ -52,10 +52,8 @@ describe('MyController Integration Tests', () => {
 		expect(resultOrder!.id).toBe(orderId);
 	});
 
-	// One day in ms, so the dates below stay readable - cl_Jihad
 	const day = 24 * 60 * 60 * 1000;
 
-	// Helper: creates a product + order, calls the endpoint, returns the product from the DB - cl_Jihad
 	async function processOrderWith(product: ProductInsert) {
 		const [saved] = database.insert(products).values(product).returning().all();
 		const order = database.insert(orders).values({}).returning().get();
@@ -66,7 +64,6 @@ describe('MyController Integration Tests', () => {
 		return database.query.products.findFirst({where: eq(products.id, saved!.id)});
 	}
 
-	// Quick check that no notification went out at all - cl_Jihad
 	function expectNoNotification() {
 		expect(notificationServiceMock.sendDelayNotification).not.toHaveBeenCalled();
 		expect(notificationServiceMock.sendOutOfStockNotification).not.toHaveBeenCalled();
@@ -78,7 +75,6 @@ describe('MyController Integration Tests', () => {
 		await supertest(fastify.server).post('/orders/999/processOrder').expect(404);
 	});
 
-	// The endpoint answers with the id of the processed order - cl_Jihad
 	it('returns the processed order id', async () => {
 		const order = database.insert(orders).values({}).returning().get();
 
@@ -87,7 +83,25 @@ describe('MyController Integration Tests', () => {
 		expect(response.body).toEqual({orderId: order.id});
 	});
 
-	// Tests for the NORMAL case - cl_Jihad
+	it('processes an order mixing the three product types', async () => {
+		const orderId = database.transaction(tx => {
+			const productList = tx.insert(products).values(createProducts()).returning({productId: products.id}).all();
+			const order = tx.insert(orders).values([{}]).returning({orderId: orders.id}).get();
+			tx.insert(ordersToProducts).values(productList.map(p => ({orderId: order.orderId, productId: p.productId}))).run();
+			return order.orderId;
+		});
+
+		await supertest(fastify.server).post(`/orders/${orderId}/processOrder`).expect(200);
+
+		const stockByName = Object.fromEntries(database.select().from(products).all().map(p => [p.name, p.available]));
+		expect(stockByName).toEqual({
+			'USB Cable': 29, 'USB Dongle': 0, Butter: 29, Milk: 0, Watermelon: 29, Grapes: 30,
+		});
+		expect(notificationServiceMock.sendDelayNotification).toHaveBeenCalledWith(10, 'USB Dongle');
+		expect(notificationServiceMock.sendOutOfStockNotification).toHaveBeenCalledWith('Grapes');
+		expect(notificationServiceMock.sendExpirationNotification).toHaveBeenCalledTimes(1);
+	});
+
 	describe('NORMAL products', () => {
 		it('decrements the stock when available', async () => {
 			const result = await processOrderWith({
@@ -117,7 +131,6 @@ describe('MyController Integration Tests', () => {
 		});
 	});
 
-	// Tests for the SEASONAL case, the trickiest one - cl_Jihad
 	describe('SEASONAL products', () => {
 		it('decrements the stock when in season and available', async () => {
 			const result = await processOrderWith({
@@ -173,7 +186,6 @@ describe('MyController Integration Tests', () => {
 		});
 	});
 
-	// Tests for the EXPIRABLE case - cl_Jihad
 	describe('EXPIRABLE products', () => {
 		it('decrements the stock when not expired and available', async () => {
 			const result = await processOrderWith({

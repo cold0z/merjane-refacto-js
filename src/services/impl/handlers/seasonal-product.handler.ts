@@ -7,7 +7,6 @@ import {type ProductRepository} from '@/repositories/product.repository.js';
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
-// Rules for SEASONAL products: only sellable during the season, and a restock after the season is useless - cl_Jihad
 export class SeasonalProductHandler implements ProductHandler {
 	private readonly ps: ProductService;
 	private readonly ns: INotificationService;

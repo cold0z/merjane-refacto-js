@@ -8,7 +8,6 @@ import {type INotificationService} from '@/services/notifications.port.js';
 import {type ProductRepository} from '@/repositories/product.repository.js';
 import {type Product} from '@/db/schema.js';
 
-// Unit tests for the SEASONAL rules, the trickiest ones, so every branch has its own test - cl_Jihad
 describe('SeasonalProductHandler', () => {
 	const day = 24 * 60 * 60 * 1000;
 	const now = new Date('2026-06-15T12:00:00Z');
@@ -112,5 +111,14 @@ describe('SeasonalProductHandler', () => {
 		expect(product.available).toBe(0);
 		expect(productRepositoryMock.save).toHaveBeenCalledWith(product);
 		expect(productServiceMock.decrementStock).not.toHaveBeenCalled();
+	});
+
+	it('still notifies the delay when the restock lands exactly on the season end', async () => {
+		const product = buildProduct({available: 0, leadTime: 15, seasonEndDate: daysFromNow(15)});
+
+		await handler.handle(product);
+
+		expect(productServiceMock.notifyDelay).toHaveBeenCalledWith(15, product);
+		expect(notificationServiceMock.sendOutOfStockNotification).not.toHaveBeenCalled();
 	});
 });
